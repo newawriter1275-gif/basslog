@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14735a"/>
+      <stop offset="1" stop-color="#0a3d2f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- water ripple lines -->
+  <g stroke="#5fc7a1" stroke-width="14" fill="none" opacity="0.4" stroke-linecap="round">
+    <path d="M120 800 q 80 -40 160 0 t 160 0 t 160 0 t 160 0 t 160 0"/>
+    <path d="M180 880 q 80 -34 160 0 t 160 0 t 160 0 t 160 0"/>
+  </g>
+  <!-- bass silhouette -->
+  <g fill="#ffffff">
+    <!-- body -->
+    <path d="M180 470
+             C 260 350, 430 300, 560 340
+             C 660 370, 730 430, 760 480
+             L 850 400
+             C 830 470, 830 530, 850 600
+             L 755 535
+             C 715 600, 640 650, 540 660
+             C 400 674, 250 610, 180 540
+             C 160 520, 160 492, 180 470 Z"/>
+    <!-- dorsal fin -->
+    <path d="M430 330 L 470 220 L 530 320 L 585 240 L 610 345 C 550 315, 490 315, 430 330 Z"/>
+  </g>
+  <!-- eye -->
+  <circle cx="300" cy="470" r="30" fill="#0a3d2f"/>
+  <!-- gill line -->
+  <path d="M400 400 q 40 90 10 190" stroke="#0a3d2f" stroke-width="18" fill="none" stroke-linecap="round"/>
+</svg>

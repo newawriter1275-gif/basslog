@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BASS LOG — 釣行記録・分析</title>
+<meta name="description" content="バスフィッシングの釣行記録・釣行プラン・要因分析アプリ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f5f2">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c110f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BASS LOG">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<style>
+html{padding-top:env(safe-area-inset-top)}
+:root{
+  --page:#f2f5f2; --card:#fdfdfc; --card2:#f5f7f4;
+  --ink:#101915; --ink2:#4e5a53; --muted:#7d8781;
+  --hair:#dde2dc; --hair2:#e8ece7;
+  --acc:#166d54; --acc-soft:#e3efe9; --acc-ink:#0e5440;
+  --on-acc:#ffffff;
+  --series:#2a78d6; --series-soft:#e6f0fb;
+  --good:#0ca30c; --good-ink:#006300; --good-soft:#e5f3e5;
+  --warn-ink:#8a5a00; --warn-soft:#fdf1d8;
+  --shadow:0 1px 2px rgba(16,25,21,.05),0 4px 14px rgba(16,25,21,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --page:#0c110f; --card:#161d19; --card2:#1c2420;
+    --ink:#edf2ee; --ink2:#a8b3ab; --muted:#78827b;
+    --hair:#28302b; --hair2:#222a25;
+    --acc:#3fae86; --acc-soft:#1a2e27; --acc-ink:#5fc7a1;
+    --on-acc:#07130e;
+    --series:#3987e5; --series-soft:#182a40;
+    --good:#0ca30c; --good-ink:#3cc23c; --good-soft:#14261a;
+    --warn-ink:#e8b45a; --warn-soft:#2b2313;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0c110f; --card:#161d19; --card2:#1c2420;
+  --ink:#edf2ee; --ink2:#a8b3ab; --muted:#78827b;
+  --hair:#28302b; --hair2:#222a25;
+  --acc:#3fae86; --acc-soft:#1a2e27; --acc-ink:#5fc7a1;
+  --on-acc:#07130e;
+  --series:#3987e5; --series-soft:#182a40;
+  --good:#0ca30c; --good-ink:#3cc23c; --good-soft:#14261a;
+  --warn-ink:#e8b45a; --warn-soft:#2b2313;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+}
+:root[data-theme="light"]{
+  --page:#f2f5f2; --card:#fdfdfc; --card2:#f5f7f4;
+  --ink:#101915; --ink2:#4e5a53; --muted:#7d8781;
+  --hair:#dde2dc; --hair2:#e8ece7;
+  --acc:#166d54; --acc-soft:#e3efe9; --acc-ink:#0e5440;
+  --on-acc:#ffffff;
+  --series:#2a78d6; --series-soft:#e6f0fb;
+  --good:#0ca30c; --good-ink:#006300; --good-soft:#e5f3e5;
+  --warn-ink:#8a5a00; --warn-soft:#fdf1d8;
+  --shadow:0 1px 2px rgba(16,25,21,.05),0 4px 14px rgba(16,25,21,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--page); color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:720px;margin:0 auto;padding:0 16px 96px}
+header.top{
+  display:flex;align-items:baseline;gap:10px;
+  padding:20px 2px 14px;
+}
+.logo{font-weight:800;font-size:20px;letter-spacing:.12em;color:var(--acc-ink)}
+.logo-sub{font-size:12.5px;color:var(--muted)}
+.tab{display:none}
+.tab.active{display:block}
+h2.sec{font-size:16px;font-weight:700;margin:18px 0 10px;letter-spacing:.02em}
+h2.sec:first-child{margin-top:4px}
+.card{
+  background:var(--card);border:1px solid var(--hair);border-radius:14px;
+  padding:16px;box-shadow:var(--shadow);margin-bottom:14px;
+}
+.hint{font-size:12.5px;color:var(--muted)}
+/* ---- form ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.grid2 .full{grid-column:1/-1}
+label.f{display:block}
+label.f .fl{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:4px;letter-spacing:.03em}
+input,select,textarea{
+  width:100%;font:inherit;font-size:16px;color:var(--ink);
+  background:var(--card2);border:1px solid var(--hair);border-radius:10px;
+  padding:9px 11px;
+}
+input:focus,select:focus,textarea:focus,button:focus-visible{
+  outline:2px solid var(--acc);outline-offset:1px;
+}
+textarea{min-height:72px;resize:vertical}
+.unitwrap{position:relative}
+.unitwrap input{padding-right:44px}
+.unitwrap .unit{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.fgroup{border-top:1px solid var(--hair2);margin-top:14px;padding-top:12px}
+.fgroup .gt{font-size:12px;font-weight:700;color:var(--acc-ink);letter-spacing:.08em;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;padding:3px 10px;border-radius:999px;
+  background:var(--card2);border:1px solid var(--hair);color:var(--ink2);
+  white-space:nowrap;
+}
+.chip.acc{background:var(--acc-soft);border-color:transparent;color:var(--acc-ink);font-weight:600}
+.chip.good{background:var(--good-soft);border-color:transparent;color:var(--good-ink);font-weight:600}
+.chip.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn-ink);font-weight:600}
+.btnrow{display:flex;gap:10px;margin-top:16px}
+button{
+  font:inherit;font-weight:700;font-size:15px;border-radius:11px;cursor:pointer;
+  padding:11px 18px;border:1px solid var(--hair);background:var(--card2);color:var(--ink);
+}
+button.primary{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+button.small{font-size:12.5px;padding:5px 12px;font-weight:600;border-radius:9px}
+button.danger{color:#c23434;border-color:currentColor;background:transparent}
+button:active{transform:translateY(1px)}
+/* ---- list ---- */
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.filters .full{grid-column:1/-1}
+.entry{padding:14px 16px}
+.entry .ehead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.entry .edate{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.entry .eplace{font-weight:700;font-size:15.5px}
+.entry .espot{font-weight:400;color:var(--ink2);font-size:13px}
+.entry .chips{margin-top:8px}
+.entry .memo{font-size:13px;color:var(--ink2);margin-top:8px;white-space:pre-wrap}
+.entry .eactions{display:flex;gap:8px;margin-top:10px}
+.catchbadge{font-weight:800;font-size:14px;color:var(--good-ink);white-space:nowrap}
+.catchbadge.zero{color:var(--muted);font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:32px 8px;font-size:13.5px}
+/* ---- analysis ---- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--card);border:1px solid var(--hair);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow)}
+.tile .tv{font-size:22px;font-weight:800;line-height:1.2}
+.tile .tv .tu{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px}
+.tile .tl{font-size:11.5px;color:var(--muted);margin-top:2px}
+.chart-title{font-size:13.5px;font-weight:700;margin-bottom:2px}
+.chart-sub{font-size:11.5px;color:var(--muted);margin-bottom:10px}
+.hrow{display:grid;grid-template-columns:96px 1fr 72px;gap:8px;align-items:center;padding:3px 0}
+.hrow .hl{font-size:12px;color:var(--ink2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .htrack{height:16px;background:var(--card2);border-radius:4px;position:relative}
+.hrow .hfill{position:absolute;inset:0 auto 0 0;background:var(--series);border-radius:4px;min-width:2px}
+.hrow .hv{font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hrow .hn{color:var(--muted);font-size:10.5px;margin-left:4px}
+.hrow:hover .htrack{outline:1px solid var(--hair)}
+.ranklist{margin:0;padding:0;list-style:none}
+.ranklist li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--hair2);font-size:13.5px}
+.ranklist li:first-child{border-top:none}
+.ranklist .rn{font-variant-numeric:tabular-nums;color:var(--ink2)}
+/* ---- plan ---- */
+.advice h3{font-size:14px;margin:0 0 6px;color:var(--acc-ink)}
+.advice p{margin:4px 0;font-size:13.5px}
+.advice .kv{display:grid;grid-template-columns:64px 1fr;gap:4px 10px;font-size:13.5px;margin-top:8px}
+.advice .kv dt{color:var(--muted);font-size:12px;padding-top:1px}
+.advice .kv dd{margin:0}
+.simtrip{border-top:1px solid var(--hair2);padding:9px 0;font-size:13px}
+.simtrip:first-of-type{border-top:none}
+.simtrip .st1{display:flex;justify-content:space-between;gap:8px}
+.simtrip .st2{color:var(--ink2);font-size:12px;margin-top:2px}
+/* ---- settings ---- */
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--hair2)}
+.setrow:first-child{border-top:none}
+.setrow .sl{font-size:14px;font-weight:600}
+.setrow .sd{font-size:12px;color:var(--muted)}
+/* ---- tabbar ---- */
+nav.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;
+  background:var(--card);border-top:1px solid var(--hair);
+  display:flex;justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav.tabbar .inner{display:flex;width:100%;max-width:720px}
+nav.tabbar button{
+  flex:1;background:none;border:none;border-radius:0;padding:8px 0 9px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10.5px;font-weight:600;color:var(--muted);
+}
+nav.tabbar button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabbar button.on{color:var(--acc-ink)}
+@media (prefers-reduced-motion: no-preference){
+  .hrow .hfill{transition:width .35s ease}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <span class="logo">BASS LOG</span>
+    <span class="logo-sub">釣行記録・釣行プラン・要因分析</span>
+  </header>
+
+  <!-- ============ 記録 ============ -->
+  <section class="tab active" id="tab-record">
+    <div class="card">
+      <div class="chips" id="autoChips" style="margin-bottom:12px"></div>
+      <form id="entryForm" autocomplete="off">
+        <div class="grid2">
+          <label class="f"><span class="fl">日時</span><input type="datetime-local" name="dt" required></label>
+          <label class="f"><span class="fl">フィールド</span><input name="field" list="fieldList" placeholder="例: 霞ヶ浦" required><datalist id="fieldList"></datalist></label>
+          <label class="f full"><span class="fl">ポイント・エリア</span><input name="spot" placeholder="例: 北岸 消波ブロック帯"></label>
+        </div>
+
+        <div class="fgroup"><div class="gt">気象</div>
+          <div class="grid2">
+            <label class="f"><span class="fl">天気</span>
+              <select name="weather"><option value="">—</option><option>快晴</option><option>晴れ</option><option>曇り</option><option>小雨</option><option>雨</option><option>雷雨</option><option>雪</option></select></label>
+            <label class="f"><span class="fl">気温</span><span class="unitwrap"><input type="number" name="airTemp" step="0.1" inputmode="decimal"><span class="unit">℃</span></span></label>
+            <label class="f"><span class="fl">風向き</span>
+              <select name="windDir"><option value="">—</option><option>無風</option><option>北</option><option>北東</option><option>東</option><option>南東</option><option>南</option><option>南西</option><option>西</option><option>北西</option></select></label>
+            <label class="f"><span class="fl">風速</span><span class="unitwrap"><input type="number" name="windSpd" step="0.5" min="0" inputmode="decimal"><span class="unit">m/s</span></span></label>
+            <label class="f"><span class="fl">気圧</span><span class="unitwrap"><input type="number" name="pressure" step="1" inputmode="numeric" placeholder="1013"><span class="unit">hPa</span></span></label>
+            <label class="f"><span class="fl">光量</span>
+              <select name="light"><option value="">—</option><option>強い(晴天・高活性の影意識)</option><option>普通</option><option>ローライト(朝夕・曇天)</option></select></label>
+          </div>
+        </div>
+
+        <div class="fgroup"><div class="gt">水の状態</div>
+          <div class="grid2">
+            <label class="f"><span class="fl">水温</span><span class="unitwrap"><input type="number" name="waterTemp" step="0.1" inputmode="decimal"><span class="unit">℃</span></span></label>
+            <label class="f"><span class="fl">水の色</span>
+              <select name="waterColor"><option value="">—</option><option>クリア</option><option>ステイン</option><option>マッディ</option></select></label>
+            <label class="f"><span class="fl">水質</span>
+              <select name="waterQuality"><option value="">—</option><option>良好</option><option>普通</option><option>悪い(アオコ・濁り等)</option></select></label>
+            <label class="f"><span class="fl">水位</span>
+              <select name="waterLevel"><option value="">—</option><option>減水</option><option>平常</option><option>増水</option></select></label>
+          </div>
+        </div>
+
+        <div class="fgroup"><div class="gt">ベイト</div>
+          <div class="grid2">
+            <label class="f"><span class="fl">ベイトの量</span>
+              <select name="bait"><option value="">—</option><option>多い</option><option>普通</option><option>少ない</option><option>未確認</option></select></label>
+            <label class="f"><span class="fl">ベイトの種類</span><input name="baitKind" placeholder="例: ワカサギの群れ、エビ"></label>
+          </div>
+        </div>
+
+        <div class="fgroup"><div class="gt">釣果</div>
+          <div class="grid2">
+            <label class="f"><span class="fl">匹数</span><span class="unitwrap"><input type="number" name="catchCount" min="0" step="1" inputmode="numeric" value="0"><span class="unit">匹</span></span></label>
+            <label class="f"><span class="fl">最大サイズ</span><span class="unitwrap"><input type="number" name="maxSize" min="0" step="0.5" inputmode="decimal"><span class="unit">cm</span></span></label>
+            <label class="f"><span class="fl">ヒットルアー</span><input name="lure" placeholder="例: 5inスティックベイト ネコリグ"></label>
+            <label class="f"><span class="fl">ヒットレンジ</span>
+              <select name="range"><option value="">—</option><option>表層</option><option>中層</option><option>ボトム</option></select></label>
+          </div>
+        </div>
+
+        <div class="fgroup">
+          <label class="f"><span class="fl">メモ(状況・気づき・仮説)</span><textarea name="memo" placeholder="例: 南風が当たる岸にベイトが寄っていた。風裏は無反応。"></textarea></label>
+        </div>
+
+        <div class="btnrow">
+          <button type="submit" class="primary" id="saveBtn">保存する</button>
+          <button type="button" id="cancelEditBtn" style="display:none">編集をやめる</button>
+          <button type="button" id="resetBtn">クリア</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ 一覧 ============ -->
+  <section class="tab" id="tab-list">
+    <div class="filters">
+      <select id="flField"><option value="">すべてのフィールド</option></select>
+      <select id="flMonth"><option value="">すべての月</option></select>
+      <input class="full" id="flText" placeholder="ルアー・メモ・ポイントを検索">
+    </div>
+    <div id="listWrap"></div>
+  </section>
+
+  <!-- ============ 分析 ============ -->
+  <section class="tab" id="tab-analysis">
+    <div class="filters"><select id="anField" class="full"><option value="">すべてのフィールド</option></select></div>
+    <div id="analysisWrap"></div>
+  </section>
+
+  <!-- ============ プラン ============ -->
+  <section class="tab" id="tab-plan">
+    <div class="card">
+      <div class="chart-title">釣行プランを組み立てる</div>
+      <div class="chart-sub">予定日と予想条件を入れると、季節の読みと過去の実績パターンを提示します</div>
+      <div class="grid2">
+        <label class="f"><span class="fl">釣行予定日</span><input type="date" id="planDate"></label>
+        <label class="f"><span class="fl">フィールド(任意)</span><select id="planField"><option value="">指定なし</option></select></label>
+        <label class="f"><span class="fl">予想水温(任意)</span><span class="unitwrap"><input type="number" id="planWt" step="0.5" inputmode="decimal"><span class="unit">℃</span></span></label>
+        <label class="f"><span class="fl">予想天気(任意)</span>
+          <select id="planWeather"><option value="">—</option><option>快晴</option><option>晴れ</option><option>曇り</option><option>小雨</option><option>雨</option></select></label>
+      </div>
+      <div class="btnrow"><button class="primary" id="planBtn" type="button">プランを作成</button></div>
+    </div>
+    <div id="planOut"></div>
+  </section>
+
+  <!-- ============ 設定 ============ -->
+  <section class="tab" id="tab-settings">
+    <div class="card">
+      <div class="chart-title">データ管理</div>
+      <div class="chart-sub" id="dataCount"></div>
+      <div class="setrow">
+        <div><div class="sl">JSONバックアップ</div><div class="sd">全記録をファイルに書き出し</div></div>
+        <button class="small" id="expJson" type="button">書き出す</button>
+      </div>
+      <div class="setrow">
+        <div><div class="sl">JSON読み込み</div><div class="sd">バックアップから復元(既存と統合)</div></div>
+        <button class="small" id="impJsonBtn" type="button">読み込む</button>
+        <input type="file" id="impJson" accept=".json,application/json" style="display:none">
+      </div>
+      <div class="setrow">
+        <div><div class="sl">CSV書き出し</div><div class="sd">表計算ソフトで分析する用</div></div>
+        <button class="small" id="expCsv" type="button">書き出す</button>
+      </div>
+      <div class="setrow">
+        <div><div class="sl">サンプルデータ</div><div class="sd">試しに分析画面を見たいとき</div></div>
+        <button class="small" id="addSample" type="button">追加する</button>
+      </div>
+      <div class="setrow">
+        <div><div class="sl">全データを削除</div><div class="sd">取り消せません。先にバックアップを</div></div>
+        <button class="small danger" id="wipeAll" type="button">削除する</button>
+      </div>
+    </div>
+    <div class="card" id="installHint" style="display:none">
+      <div class="chart-title">ホーム画面に追加すると、アプリとして使えます</div>
+      <div class="chart-sub">全画面表示・アイコン起動・オフラインでも動作</div>
+      <p style="font-size:13.5px;margin:6px 0 0">iPhoneの場合: Safariの<strong>共有ボタン(□に↑)</strong> → <strong>「ホーム画面に追加」</strong>をタップ。<br>
+      追加後はホーム画面のBASS LOGから起動してください(データはアプリ側で新規に始まります。移行はJSONバックアップで)。</p>
+    </div>
+    <p class="hint">記録はこの端末のブラウザ内(localStorage)に保存されます。端末やブラウザを変えるとデータは引き継がれないため、定期的にJSONバックアップの書き出しをおすすめします。</p>
+  </section>
+</div>
+
+<nav class="tabbar"><div class="inner">
+  <button data-tab="record" class="on"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/></svg>記録</button>
+  <button data-tab="list"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>一覧</button>
+  <button data-tab="analysis"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>分析</button>
+  <button data-tab="plan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/></svg>プラン</button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>設定</button>
+</div></nav>
+
+<script>
+"use strict";
+/* ================= storage ================= */
+const KEY = "basslog.entries.v1";
+let entries = [];
+try { entries = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { entries = []; }
+function persist(){ localStorage.setItem(KEY, JSON.stringify(entries)); }
+function uid(){ return (crypto.randomUUID ? crypto.randomUUID() : "id-" + Math.random().toString(36).slice(2) + Date.now()); }
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtDate(dt){
+  const d = new Date(dt); if (isNaN(d)) return dt;
+  const w = "日月火水木金土"[d.getDay()];
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}(${w}) ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function num(v){ const n = parseFloat(v); return isNaN(n) ? null : n; }
+
+/* 月齢 */
+function moonAge(d){
+  const syn = 29.53058867, ref = Date.UTC(2000,0,6,18,14);
+  let age = ((d.getTime() - ref) / 86400000) % syn;
+  if (age < 0) age += syn;
+  return age;
+}
+function moonLabel(age){
+  if (age < 1.5 || age > 28) return "新月";
+  if (age < 6) return "三日月ごろ";
+  if (age < 9) return "上弦の月";
+  if (age < 13.5) return "満月前";
+  if (age < 16) return "満月";
+  if (age < 20.5) return "満月後";
+  if (age < 24) return "下弦の月";
+  return "晦(つごもり)";
+}
+/* 時間帯 */
+function timeBand(d){
+  const h = d.getHours();
+  if (h >= 4 && h < 8) return "朝マズメ";
+  if (h >= 8 && h < 16) return "日中";
+  if (h >= 16 && h < 19) return "夕マズメ";
+  return "夜";
+}
+/* 月別の典型水温(関東平野部の目安) — 水温未入力時の推定に使う */
+const TYP_WT = {1:5,2:6,3:9,4:13,5:17,6:21,7:26,8:28,9:25,10:19,11:13,12:8};
+
+/* シーズナルステージ判定: 月(1-12)+水温 */
+function seasonStage(month, wt){
+  let estimated = false;
+  if (wt == null){ wt = TYP_WT[month]; estimated = true; }
+  const warming = month >= 1 && month <= 6;
+  let s;
+  if (warming){
+    if (wt < 8)       s = {name:"越冬期",            area:"ディープ隣接で温みやすいシャロー・温排水・日当たりの良い岩盤",
+                           lure:"メタルバイブ・シャッド・スモラバ", note:"動きはスローかリアクションの二択。数日暖かい日が続いた午後が狙い目。"};
+    else if (wt < 12) s = {name:"プリスポーン初期",   area:"スポーニングエリアに隣接するブレイク・チャンネル沿い",
+                           lure:"スピナーベイト・フラットサイドクランク・ジャークベイト", note:"三寒四温。暖かい南風と安定した気圧でシャローに差してくる。ビッグフィッシュの期待大。"};
+    else if (wt < 16) s = {name:"プリスポーン本番〜スポーン", area:"シャローフラット・ワンドの奥・ハードボトム",
+                           lure:"ラバージグ・テキサス・サスペンドジャーク", note:"年間で最も大型が動く時期。ネスト絡みは見えたら無理せずリリース前提で。"};
+    else if (wt < 20) s = {name:"スポーン〜アフター回復", area:"縦ストラクチャー・シェード・ワンドの出入口",
+                           lure:"ノーシンカーワーム・ミドスト・羽根モノ", note:"サスペンド傾向で食わせにくい。フォールと放置、水面系への反応が出始める。"};
+    else              s = {name:"アフター回復〜初夏",  area:"カレント・風の当たる岬・ベイトの回遊コース",
+                           lure:"トップウォーター・巻物全般・高比重ワーム", note:"体力が戻りフィーディング再開。ベイトの位置=バスの位置。"};
+  } else {
+    if (wt > 27)      s = {name:"盛夏",              area:"シェード・流れ込み・ディープの酸素量がある場所",
+                           lure:"虫系・沖のディープクランク・ネコリグ", note:"日中はタフ。朝夕マズメ勝負、日中はシェードと流れに絞る。"};
+    else if (wt > 22) s = {name:"夏〜初秋",           area:"風とカレントが効く場所・ベイトの群れ周り",
+                           lure:"トップ・バズベイト・スピナーベイト", note:"ベイトを追って回遊。風が吹いたら巻物のチャンス。"};
+    else if (wt > 15) s = {name:"秋(ターンオーバー注意)", area:"広範囲。ベイトの群れに着く。良い水を探す",
+                           lure:"クランク・スピナーベイト・ビッグベイト", note:"横の動きで広くサーチ。泡が消えにくい・水が臭い場所はターンオーバー、避けて風下以外へ。"};
+    else if (wt > 10) s = {name:"晩秋",              area:"ディープ移行。チャンネル・ハンプ・ディープ隣接の岬",
+                           lure:"メタルバイブ・フットボールジグ・シャッド", note:"バーチカルな釣りが効きだす。晴れて暖かい日の午後はシャローも。"};
+    else              s = {name:"初冬〜冬",           area:"ディープ・温排水・水温が安定する場所",
+                           lure:"メタル系・ダウンショット・シャッド", note:"タフだが一発は大きい。ディープのベイト反応を探すこと。"};
+  }
+  s.estimated = estimated; s.wt = wt;
+  return s;
+}
+
+/* ================= tabs ================= */
+const tabs = ["record","list","analysis","plan","settings"];
+document.querySelectorAll("nav.tabbar button").forEach(b => {
+  b.addEventListener("click", () => showTab(b.dataset.tab));
+});
+function showTab(t){
+  tabs.forEach(x => {
+    $("#tab-" + x).classList.toggle("active", x === t);
+  });
+  document.querySelectorAll("nav.tabbar button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  if (t === "list") renderList();
+  if (t === "analysis") renderAnalysis();
+  if (t === "plan") initPlan();
+  if (t === "settings") renderSettings();
+  window.scrollTo(0,0);
+}
+
+/* ================= form ================= */
+const form = $("#entryForm");
+let editingId = null;
+
+function nowLocal(){
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+function resetForm(){
+  form.reset();
+  form.dt.value = nowLocal();
+  editingId = null;
+  $("#saveBtn").textContent = "保存する";
+  $("#cancelEditBtn").style.display = "none";
+  updateAutoChips();
+}
+function updateAutoChips(){
+  const d = form.dt.value ? new Date(form.dt.value) : new Date();
+  const age = moonAge(d);
+  const wt = num(form.waterTemp.value);
+  const st = seasonStage(d.getMonth()+1, wt);
+  $("#autoChips").innerHTML =
+    `<span class="chip">月齢 ${age.toFixed(1)}・${moonLabel(age)}</span>` +
+    `<span class="chip">${timeBand(d)}</span>` +
+    `<span class="chip acc">${esc(st.name)}${st.estimated ? "(月からの推定)" : ""}</span>`;
+}
+form.dt.addEventListener("change", updateAutoChips);
+form.waterTemp.addEventListener("input", updateAutoChips);
+$("#resetBtn").addEventListener("click", resetForm);
+$("#cancelEditBtn").addEventListener("click", resetForm);
+
+form.addEventListener("submit", ev => {
+  ev.preventDefault();
+  const f = form;
+  const e = {
+    id: editingId || uid(),
+    dt: f.dt.value,
+    field: f.field.value.trim(),
+    spot: f.spot.value.trim(),
+    weather: f.weather.value,
+    airTemp: num(f.airTemp.value),
+    pressure: num(f.pressure.value),
+    windDir: f.windDir.value,
+    windSpd: num(f.windSpd.value),
+    waterTemp: num(f.waterTemp.value),
+    light: f.light.value,
+    waterColor: f.waterColor.value,
+    waterQuality: f.waterQuality.value,
+    waterLevel: f.waterLevel.value,
+    bait: f.bait.value,
+    baitKind: f.baitKind.value.trim(),
+    catchCount: num(f.catchCount.value) ?? 0,
+    maxSize: num(f.maxSize.value),
+    lure: f.lure.value.trim(),
+    range: f.range.value,
+    memo: f.memo.value.trim()
+  };
+  if (editingId){
+    const i = entries.findIndex(x => x.id === editingId);
+    if (i >= 0) entries[i] = e; else entries.push(e);
+  } else {
+    entries.push(e);
+  }
+  persist();
+  resetForm();
+  refreshFieldOptions();
+  showTab("list");
+});
+
+function refreshFieldOptions(){
+  const fields = [...new Set(entries.map(e => e.field).filter(Boolean))].sort();
+  const opts = fields.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join("");
+  $("#fieldList").innerHTML = fields.map(f => `<option value="${esc(f)}">`).join("");
+  const keep = (sel) => { const v = sel.value; sel.innerHTML = sel.querySelector("option").outerHTML + opts; sel.value = v; };
+  keep($("#flField")); keep($("#anField")); keep($("#planField"));
+}
+
+/* ================= list ================= */
+function condChips(e){
+  const c = [];
+  const d = new Date(e.dt);
+  if (e.weather) c.push(e.weather + (e.airTemp != null ? ` ${e.airTemp}℃` : ""));
+  else if (e.airTemp != null) c.push(`気温 ${e.airTemp}℃`);
+  if (e.waterTemp != null) c.push(`水温 ${e.waterTemp}℃`);
+  if (e.windDir) c.push(e.windDir === "無風" ? "無風" : `${e.windDir}の風${e.windSpd != null ? " " + e.windSpd + "m" : ""}`);
+  if (e.pressure != null) c.push(`${e.pressure}hPa`);
+  if (e.waterColor) c.push(e.waterColor);
+  if (e.waterLevel && e.waterLevel !== "平常") c.push(e.waterLevel);
+  if (e.waterQuality && e.waterQuality !== "普通") c.push("水質" + e.waterQuality.slice(0,2));
+  if (e.light) c.push("光量:" + e.light.split("(")[0]);
+  if (e.bait && e.bait !== "未確認") c.push(`ベイト${e.bait}${e.baitKind ? "(" + e.baitKind + ")" : ""}`);
+  c.push(`月齢${moonAge(d).toFixed(0)}`);
+  c.push(timeBand(d));
+  const html = c.map(x => `<span class="chip">${esc(x)}</span>`);
+  const st = seasonStage(d.getMonth()+1, e.waterTemp);
+  html.unshift(`<span class="chip acc">${esc(st.name)}</span>`);
+  return html.join("");
+}
+function renderList(){
+  const fld = $("#flField").value, mon = $("#flMonth").value, txt = $("#flText").value.trim().toLowerCase();
+  let list = [...entries].sort((a,b) => b.dt.localeCompare(a.dt));
+  if (fld) list = list.filter(e => e.field === fld);
+  if (mon) list = list.filter(e => (new Date(e.dt).getMonth()+1) === +mon);
+  if (txt) list = list.filter(e => [e.lure, e.memo, e.spot, e.baitKind, e.field].join(" ").toLowerCase().includes(txt));
+  const wrap = $("#listWrap");
+  if (!list.length){
+    wrap.innerHTML = `<div class="empty">${entries.length ? "条件に合う記録がありません" : "まだ記録がありません。「記録」タブから釣行を追加してください。<br>設定タブのサンプルデータで画面の雰囲気を試せます。"}</div>`;
+    return;
+  }
+  wrap.innerHTML = list.map(e => {
+    const catchHtml = e.catchCount > 0
+      ? `<span class="catchbadge">${e.catchCount}匹${e.maxSize ? ` / 最大${e.maxSize}cm` : ""}</span>`
+      : `<span class="catchbadge zero">ノーフィッシュ</span>`;
+    const hit = e.catchCount > 0 && (e.lure || e.range)
+      ? `<span class="chip good">ヒット: ${esc([e.lure, e.range].filter(Boolean).join(" / "))}</span>` : "";
+    return `<div class="card entry">
+      <div class="ehead">
+        <div><div class="edate">${fmtDate(e.dt)}</div>
+        <div class="eplace">${esc(e.field)}${e.spot ? ` <span class="espot">${esc(e.spot)}</span>` : ""}</div></div>
+        ${catchHtml}
+      </div>
+      <div class="chips">${hit}${condChips(e)}</div>
+      ${e.memo ? `<div class="memo">${esc(e.memo)}</div>` : ""}
+      <div class="eactions">
+        <button class="small" onclick="editEntry('${e.id}')" type="button">編集</button>
+        <button class="small danger" onclick="delEntry('${e.id}')" type="button">削除</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+window.editEntry = function(id){
+  const e = entries.find(x => x.id === id); if (!e) return;
+  form.reset();
+  for (const k of ["dt","field","spot","weather","windDir","light","waterColor","waterQuality","waterLevel","bait","baitKind","lure","range","memo"])
+    if (form[k]) form[k].value = e[k] ?? "";
+  for (const k of ["airTemp","pressure","windSpd","waterTemp","catchCount","maxSize"])
+    if (form[k]) form[k].value = e[k] ?? "";
+  editingId = id;
+  $("#saveBtn").textContent = "更新する";
+  $("#cancelEditBtn").style.display = "";
+  updateAutoChips();
+  showTab("record");
+};
+window.delEntry = function(id){
+  const e = entries.find(x => x.id === id); if (!e) return;
+  if (!confirm(`${fmtDate(e.dt)} ${e.field} の記録を削除しますか?`)) return;
+  entries = entries.filter(x => x.id !== id);
+  persist(); renderList(); refreshFieldOptions();
+};
+["flField","flMonth","flText"].forEach(id => $("#" + id).addEventListener("input", renderList));
+$("#flMonth").innerHTML = `<option value="">すべての月</option>` + Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}月</option>`).join("");
+
+/* ================= analysis ================= */
+function groupStat(list, keyFn){
+  const m = new Map();
+  for (const e of list){
+    const k = keyFn(e);
+    if (k == null || k === "") continue;
+    if (!m.has(k)) m.set(k, {n:0, sum:0});
+    const g = m.get(k); g.n++; g.sum += e.catchCount || 0;
+  }
+  return m;
+}
+function hbarChart(title, sub, rows, opts = {}){
+  // rows: {label, value, n}
+  if (!rows.length) return "";
+  const max = Math.max(...rows.map(r => r.value), 0.0001);
+  const unit = opts.unit ?? "匹/釣行";
+  const body = rows.map(r => `
+    <div class="hrow" title="${esc(r.label)}: ${r.value.toFixed(opts.dec ?? 1)}${esc(unit)}(釣行${r.n}回)">
+      <div class="hl">${esc(r.label)}</div>
+      <div class="htrack"><div class="hfill" style="width:${(r.value / max * 100).toFixed(1)}%"></div></div>
+      <div class="hv">${r.value.toFixed(opts.dec ?? 1)}<span class="hn">n=${r.n}</span></div>
+    </div>`).join("");
+  return `<div class="card"><div class="chart-title">${esc(title)}</div><div class="chart-sub">${esc(sub)}</div>${body}</div>`;
+}
+function orderRows(m, order){
+  // m: Map(label -> {n,sum}) → rows sorted by given order array (others appended)
+  const rows = [];
+  const done = new Set();
+  for (const k of order){ if (m.has(k)){ const g = m.get(k); rows.push({label:k, value:g.sum/g.n, n:g.n}); done.add(k); } }
+  for (const [k,g] of m){ if (!done.has(k)) rows.push({label:k, value:g.sum/g.n, n:g.n}); }
+  return rows;
+}
+function renderAnalysis(){
+  const fld = $("#anField").value;
+  const list = fld ? entries.filter(e => e.field === fld) : entries;
+  const wrap = $("#analysisWrap");
+  if (!list.length){
+    wrap.innerHTML = `<div class="empty">分析できる記録がまだありません</div>`;
+    return;
+  }
+  const trips = list.length;
+  const total = list.reduce((s,e) => s + (e.catchCount || 0), 0);
+  const zero = list.filter(e => !(e.catchCount > 0)).length;
+  const maxFish = Math.max(0, ...list.map(e => e.maxSize || 0));
+  let html = `<div class="tiles">
+    <div class="tile"><div class="tv">${trips}<span class="tu">回</span></div><div class="tl">釣行</div></div>
+    <div class="tile"><div class="tv">${total}<span class="tu">匹</span></div><div class="tl">総釣果</div></div>
+    <div class="tile"><div class="tv">${(total/trips).toFixed(1)}<span class="tu">匹/回</span></div><div class="tl">平均釣果</div></div>
+    <div class="tile"><div class="tv">${maxFish > 0 ? maxFish + '<span class="tu">cm</span>' : "—"}</div><div class="tl">自己最大</div></div>
+  </div>`;
+  if (zero > 0) html += `<p class="hint" style="margin:-6px 2px 12px">ノーフィッシュ率 ${(zero/trips*100).toFixed(0)}%(${zero}/${trips}回)</p>`;
+
+  // 水温帯
+  const wtBins = ["〜8℃","8–12℃","12–16℃","16–20℃","20–24℃","24–28℃","28℃〜"];
+  const wtStat = groupStat(list, e => {
+    const w = e.waterTemp; if (w == null) return null;
+    if (w < 8) return wtBins[0]; if (w < 12) return wtBins[1]; if (w < 16) return wtBins[2];
+    if (w < 20) return wtBins[3]; if (w < 24) return wtBins[4]; if (w < 28) return wtBins[5]; return wtBins[6];
+  });
+  html += hbarChart("水温帯別の平均釣果", "1釣行あたりの平均匹数。水温はバスの季節進行を決める最重要要素", orderRows(wtStat, wtBins));
+
+  // 月別
+  const moStat = groupStat(list, e => (new Date(e.dt).getMonth()+1) + "月");
+  html += hbarChart("月別の平均釣果", "季節ごとの釣れ方の傾向", orderRows(moStat, Array.from({length:12},(_,i)=>(i+1)+"月")));
+
+  // 時間帯
+  const tbStat = groupStat(list, e => timeBand(new Date(e.dt)));
+  html += hbarChart("時間帯別の平均釣果", "マズメの効き方をチェック", orderRows(tbStat, ["朝マズメ","日中","夕マズメ","夜"]));
+
+  // 天気・光量・水色・風・ベイト
+  const wStat = groupStat(list, e => e.weather);
+  html += hbarChart("天気別の平均釣果", "ローライトで釣果が伸びるタイプのフィールドか", orderRows(wStat, ["快晴","晴れ","曇り","小雨","雨","雷雨","雪"]));
+  const lStat = groupStat(list, e => e.light ? e.light.split("(")[0] : null);
+  html += hbarChart("光量別の平均釣果", "光量とバイトの出方の関係", orderRows(lStat, ["強い","普通","ローライト"]));
+  const cStat = groupStat(list, e => e.waterColor);
+  html += hbarChart("水の色別の平均釣果", "濁りへの強さ・弱さの傾向", orderRows(cStat, ["クリア","ステイン","マッディ"]));
+  const wdStat = groupStat(list, e => {
+    if (e.windDir === "無風" || e.windSpd === 0) return "無風";
+    if (e.windSpd == null) return e.windDir || null;
+    if (e.windSpd < 2) return "微風(〜2m)"; if (e.windSpd < 5) return "そよ風(2–5m)"; return "強風(5m〜)";
+  });
+  html += hbarChart("風の強さ別の平均釣果", "風が味方になるか、敵になるか", orderRows(wdStat, ["無風","微風(〜2m)","そよ風(2–5m)","強風(5m〜)"]));
+  const bStat = groupStat(list, e => e.bait && e.bait !== "未確認" ? "ベイト" + e.bait : null);
+  html += hbarChart("ベイトの量別の平均釣果", "ベイトの有無と釣果の相関", orderRows(bStat, ["ベイト多い","ベイト普通","ベイト少ない"]));
+
+  // ルアーランキング
+  const lm = new Map();
+  for (const e of list){
+    if (e.catchCount > 0 && e.lure){
+      if (!lm.has(e.lure)) lm.set(e.lure, {c:0, t:0});
+      const g = lm.get(e.lure); g.c += e.catchCount; g.t++;
+    }
+  }
+  const lures = [...lm.entries()].sort((a,b) => b[1].c - a[1].c).slice(0,8);
+  if (lures.length){
+    html += `<div class="card"><div class="chart-title">ヒットルアー ランキング</div><div class="chart-sub">釣果のあった釣行のヒットルアー(累計匹数)</div>
+      <ol class="ranklist">${lures.map(([l,g]) => `<li><span>${esc(l)}</span><span class="rn">${g.c}匹・${g.t}釣行</span></li>`).join("")}</ol></div>`;
+  }
+  wrap.innerHTML = html;
+}
+$("#anField").addEventListener("change", renderAnalysis);
+
+/* ================= plan ================= */
+function initPlan(){
+  if (!$("#planDate").value){
+    const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    $("#planDate").value = d.toISOString().slice(0,10);
+  }
+}
+$("#planBtn").addEventListener("click", () => {
+  const dv = $("#planDate").value;
+  if (!dv){ alert("釣行予定日を入力してください"); return; }
+  const d = new Date(dv + "T06:00");
+  const month = d.getMonth() + 1;
+  const wt = num($("#planWt").value);
+  const fld = $("#planField").value;
+  const weather = $("#planWeather").value;
+  const st = seasonStage(month, wt);
+  const age = moonAge(d);
+
+  // 類似釣行スコアリング
+  const scored = entries.map(e => {
+    const ed = new Date(e.dt);
+    let score = 0; const why = [];
+    const mdiff = Math.min(Math.abs(ed.getMonth()+1 - month), 12 - Math.abs(ed.getMonth()+1 - month));
+    if (mdiff === 0){ score += 3; why.push("同じ月"); } else if (mdiff === 1){ score += 1.5; why.push("前後の月"); }
+    if (wt != null && e.waterTemp != null){
+      const wd = Math.abs(e.waterTemp - wt);
+      if (wd <= 2){ score += 3; why.push("水温±2℃"); } else if (wd <= 4){ score += 1.5; why.push("水温±4℃"); }
+    }
+    if (fld && e.field === fld){ score += 2; why.push("同フィールド"); }
+    if (weather && e.weather === weather){ score += 1; why.push("同天気"); }
+    return {e, score, why};
+  }).filter(x => x.score >= 3).sort((a,b) => (b.score - a.score) || (b.e.catchCount - a.e.catchCount));
+
+  const hits = scored.filter(x => x.e.catchCount > 0);
+  const avg = scored.length ? scored.reduce((s,x) => s + x.e.catchCount, 0) / scored.length : 0;
+
+  let simHtml;
+  if (!entries.length){
+    simHtml = `<p class="hint">まだ記録がないため実績分析はできません。釣行を記録するほどプランの精度が上がります。</p>`;
+  } else if (!scored.length){
+    simHtml = `<p class="hint">似た条件の過去釣行が見つかりませんでした(記録${entries.length}件)。時期・水温が近い記録が増えると表示されます。</p>`;
+  } else {
+    // 実績パターンの集計
+    const good = (fn) => {
+      const m = new Map();
+      hits.forEach(x => { const v = fn(x.e); if (v) m.set(v, (m.get(v)||0) + x.e.catchCount); });
+      return [...m.entries()].sort((a,b) => b[1]-a[1]).slice(0,3).map(([k,v]) => `${k}(${v}匹)`).join("、 ");
+    };
+    const gl = good(e => e.lure), gr = good(e => e.range), gc = good(e => e.waterColor), gt = good(e => timeBand(new Date(e.dt)));
+    simHtml = `
+      <p>類似条件の過去釣行 <strong>${scored.length}件</strong>(うち釣果あり ${hits.length}件・平均 ${avg.toFixed(1)}匹/回)</p>
+      ${hits.length ? `<dl class="kv">
+        ${gl ? `<dt>ルアー</dt><dd>${esc(gl)}</dd>` : ""}
+        ${gr ? `<dt>レンジ</dt><dd>${esc(gr)}</dd>` : ""}
+        ${gt ? `<dt>時間帯</dt><dd>${esc(gt)}</dd>` : ""}
+        ${gc ? `<dt>水色</dt><dd>${esc(gc)}</dd>` : ""}
+      </dl>` : ""}
+      <div style="margin-top:10px">${scored.slice(0,5).map(x => `
+        <div class="simtrip">
+          <div class="st1"><span>${fmtDate(x.e.dt)} ${esc(x.e.field)}</span>
+          <span class="${x.e.catchCount > 0 ? "catchbadge" : "catchbadge zero"}">${x.e.catchCount > 0 ? x.e.catchCount + "匹" : "0匹"}</span></div>
+          <div class="st2">${esc([x.e.waterTemp != null ? "水温" + x.e.waterTemp + "℃" : "", x.e.weather, x.e.waterColor, x.e.catchCount > 0 ? x.e.lure : ""].filter(Boolean).join(" / "))} <span class="hn">一致: ${x.why.join("・")}</span></div>
+        </div>`).join("")}</div>`;
+  }
+
+  $("#planOut").innerHTML = `
+    <div class="card advice">
+      <h3>季節の読み — ${esc(st.name)}</h3>
+      <div class="chips" style="margin-bottom:8px">
+        <span class="chip acc">${month}月</span>
+        <span class="chip">${st.estimated ? "推定水温" : "予想水温"} ${st.wt}℃</span>
+        <span class="chip">月齢 ${age.toFixed(1)}・${moonLabel(age)}</span>
+        ${weather ? `<span class="chip">${esc(weather)}</span>` : ""}
+      </div>
+      <dl class="kv">
+        <dt>狙う場所</dt><dd>${esc(st.area)}</dd>
+        <dt>ルアー</dt><dd>${esc(st.lure)}</dd>
+        <dt>組み立て</dt><dd>${esc(st.note)}</dd>
+      </dl>
+      ${st.estimated ? `<p class="hint" style="margin-top:8px">水温は月からの推定値です。実測の予想水温を入れると精度が上がります。</p>` : ""}
+    </div>
+    <div class="card advice">
+      <h3>過去の実績パターン</h3>
+      ${simHtml}
+    </div>
+    <div class="card advice">
+      <h3>現地チェックリスト</h3>
+      <p style="font-size:13px">釣り始める前に記録しておくと、あとの要因分析が効きます。</p>
+      <div class="chips" style="margin-top:6px">
+        <span class="chip">水温を測る</span><span class="chip">水の色・水質</span><span class="chip">ベイトの有無と種類</span>
+        <span class="chip">風向きと当たる岸</span><span class="chip">水位の増減</span><span class="chip">気圧の変化</span>
+      </div>
+    </div>`;
+});
+
+/* ================= settings ================= */
+function renderSettings(){
+  $("#dataCount").textContent = `現在 ${entries.length} 件の釣行記録`;
+}
+function download(name, text, type){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type}));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+$("#expJson").addEventListener("click", () => {
+  download(`basslog-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(entries, null, 2), "application/json");
+});
+$("#impJsonBtn").addEventListener("click", () => $("#impJson").click());
+$("#impJson").addEventListener("change", ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!Array.isArray(data)) throw new Error("形式が違います");
+      const ids = new Set(entries.map(e => e.id));
+      let added = 0;
+      for (const e of data){
+        if (e && e.dt && e.field != null && !ids.has(e.id)){
+          if (!e.id) e.id = uid();
+          entries.push(e); ids.add(e.id); added++;
+        }
+      }
+      persist(); refreshFieldOptions(); renderSettings();
+      alert(`${added}件を読み込みました(重複はスキップ)`);
+    } catch (err) {
+      alert("読み込めませんでした: JSONバックアップファイルを選んでください");
+    }
+    ev.target.value = "";
+  };
+  r.readAsText(f);
+});
+$("#expCsv").addEventListener("click", () => {
+  const cols = [["日時","dt"],["フィールド","field"],["ポイント","spot"],["天気","weather"],["気温℃","airTemp"],["気圧hPa","pressure"],["風向き","windDir"],["風速m/s","windSpd"],["水温℃","waterTemp"],["光量","light"],["水の色","waterColor"],["水質","waterQuality"],["水位","waterLevel"],["ベイト量","bait"],["ベイト種類","baitKind"],["匹数","catchCount"],["最大cm","maxSize"],["ヒットルアー","lure"],["レンジ","range"],["メモ","memo"]];
+  const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const csv = "﻿" + cols.map(c => q(c[0])).join(",") + "\n" +
+    [...entries].sort((a,b) => a.dt.localeCompare(b.dt)).map(e => cols.map(c => q(e[c[1]])).join(",")).join("\n");
+  download(`basslog-${new Date().toISOString().slice(0,10)}.csv`, csv, "text/csv");
+});
+$("#wipeAll").addEventListener("click", () => {
+  if (!entries.length){ alert("データはありません"); return; }
+  if (!confirm(`全${entries.length}件の記録を削除します。よろしいですか?`)) return;
+  if (!confirm("本当に削除しますか? この操作は取り消せません。")) return;
+  entries = []; persist(); refreshFieldOptions(); renderSettings();
+});
+$("#addSample").addEventListener("click", () => {
+  if (!confirm("サンプルの釣行記録10件を追加します。よろしいですか?(あとで個別に削除できます)")) return;
+  const S = (dt,field,spot,weather,airTemp,pressure,windDir,windSpd,waterTemp,light,waterColor,waterQuality,waterLevel,bait,baitKind,catchCount,maxSize,lure,range,memo) =>
+    ({id:uid(),dt,field,spot,weather,airTemp,pressure,windDir,windSpd,waterTemp,light,waterColor,waterQuality,waterLevel,bait,baitKind,catchCount,maxSize,lure,range,memo:"【サンプル】" + memo});
+  entries.push(
+    S("2025-04-05T06:30","霞ヶ浦","北岸 石積み","曇り",14,1008,"南",3,12.5,"ローライト(朝夕・曇天)","ステイン","普通","平常","普通","ワカサギ",2,45,"フラットサイドクランク","中層","南風が3日続いた後。石積みの張り出しで連発。プリの差してきた個体か。"),
+    S("2025-04-19T15:00","霞ヶ浦","ワンド奥フラット","晴れ",20,1015,"無風",0,16,"強い(晴天・高活性の影意識)","ステイン","普通","平常","少ない","",1,50,"テキサスリグ","ボトム","スポーン絡み。フラットのハードボトムでじっくり。"),
+    S("2025-05-10T05:45","相模湖","上流 立木エリア","曇り",17,1010,"北",1,17.5,"ローライト(朝夕・曇天)","クリア","良好","減水","普通","エビ",3,38,"ノーシンカーワーム","表層","アフター回復系。立木のサスペンドをフォールで。"),
+    S("2025-06-14T05:30","亀山ダム","岬 カレント","晴れ",22,1012,"南西",2,21,"普通","ステイン","普通","平常","多い","オイカワ",4,42,"羽根モノ","表層","朝マズメのフィーディング。ベイトが岬に当たる流れに集中。"),
+    S("2025-07-21T05:00","亀山ダム","バックウォーター","快晴",28,1013,"無風",0,26.5,"普通","クリア","良好","減水","多い","小魚の群れ",2,40,"虫系ワーム","表層","盛夏。日が昇ると沈黙。流れ込みの酸素とシェードが鍵。"),
+    S("2025-08-11T17:30","霞ヶ浦","流入河川 橋脚","晴れ",31,1009,"南",4,29,"普通","マッディ","悪い(アオコ・濁り等)","平常","普通","イナッコ",1,36,"バズベイト","表層","夕マズメのみ反応。日中はアオコでお手上げ。"),
+    S("2025-09-23T09:00","霞ヶ浦","沖のブレイク","曇り",23,1005,"北東",5,24,"ローライト(朝夕・曇天)","ステイン","普通","増水","多い","ワカサギの群れ",5,44,"スピナーベイト","中層","秋の巻物パターン。風が当たる面でベイトが押され、広く探って数が出た。"),
+    S("2025-10-25T10:00","相模湖","中流域全域","雨",15,1002,"北",3,17,"ローライト(朝夕・曇天)","マッディ","悪い(アオコ・濁り等)","増水","未確認","",0,null,"","","ターンオーバー直撃。泡が消えず水が臭い。良い水を見つけられず完敗。"),
+    S("2025-11-15T11:00","亀山ダム","ディープ隣接の岬","晴れ",13,1018,"北西",2,13,"強い(晴天・高活性の影意識)","クリア","良好","平常","少ない","ワカサギ",1,48,"メタルバイブ","ボトム","晩秋のディープ。魚探でベイト反応の真下、リアクションで一発デカいの。"),
+    S("2026-03-20T12:00","霞ヶ浦","温排水周り","晴れ",12,1016,"北",4,9.5,"強い(晴天・高活性の影意識)","ステイン","普通","平常","未確認","",0,null,"シャッド","中層","早春。北風で体感極寒。温排水も反応なし。あと2℃水温が欲しい。")
+  );
+  persist(); refreshFieldOptions(); renderSettings();
+  alert("サンプルデータを追加しました。分析タブとプランタブを見てみてください。");
+});
+
+/* ================= init ================= */
+resetForm();
+refreshFieldOptions();
+
+/* ================= PWA ================= */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+(function(){
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (!standalone) $("#installHint").style.display = "";
+})();
+</script>
+</body>
+</html>
